@@ -7,30 +7,14 @@ description: >-
 
 # Component & Feature Authoring
 
-## Adding a new page/route
+## Adding a New Page
 
 1. Create `src/components/PageName.jsx`
-2. Add route in `src/App.jsx` inside `<Routes>`:
+2. Add route in `App.jsx` inside `<Routes>`
+3. Add styles in `App.css` under a section header: `/* ───── PageName ───── */`
+4. If subject-scoped, follow `SubjectPage` pattern: fetch data, set `--accent`, sidebar + content
 
-```jsx
-<Route path="/your-path" element={<PageName />} />
-```
-
-3. Add styles in `App.css` under a new section header:
-
-```css
-/* ───── PageName ───── */
-.page-name { ... }
-```
-
-4. If the page is subject-scoped, follow the `SubjectPage` pattern: fetch
-   subject data, set `--accent`, render sidebar + content area.
-
-## Adding a feature to ChapterView
-
-ChapterView renders one chapter's questions, diagrams, tables, and takeaways.
-
-### Anatomy of a rendered question:
+## ChapterView Structure
 
 ```
 ┌─────────────────────────────────────┐
@@ -39,93 +23,58 @@ ChapterView renders one chapter's questions, diagrams, tables, and takeaways.
 │─────────────────────────────────────│
 │ answer (HTML)                       │
 │ points (bulleted list, HTML items)  │
-│ diagram (Mermaid, optional)         │
+│ diagram (MermaidDiagram, optional)  │
 │ table (headers + rows, optional)    │
-│ diagram2 (Mermaid, optional)        │
+│ diagram2 (optional)                 │
 │ followup (HTML, optional)           │
-│ highlights bar (auth-only)          │
+│ highlights (auth-only, auto-save)   │
 └─────────────────────────────────────┘
 ```
 
-### Extending a question section:
-1. Backend must expose the new field in `QuestionSerializer`
-2. Frontend receives it in `ChapterView` via `chapter.questions[i].newField`
-3. Render conditionally: `{q.newField && <div>...</div>}`
+- Highlights: auto-saved on text selection, Ctrl+Z undoes last highlight
+- Extending: add field to backend serializer, render conditionally in ChapterView
 
-## Styling rules
+## Styling Rules
 
-- **Never** hardcode hex colors — always use CSS custom properties
-- **Never** create separate CSS files — add to the single `App.css`
-- Use semantic section headers in CSS: `/* ───── ComponentName ───── */`
-- Dark mode is default; light mode overrides go under `[data-theme="light"]`
-- Mobile breakpoints: `768px` (tablet), `520px` (phone)
-- Use `var(--accent)` for interactive elements — it auto-adapts per subject
+- No separate CSS files — everything in `App.css`
+- Use CSS custom properties, never hardcode hex
+- `var(--accent)` adapts per subject
+- Dark theme is default and only theme (no toggle)
+- Breakpoints: 768px (tablet), 520px (phone)
+- Loading: use `<DeltaSpinner text="..." />` (animated triangle)
 
-## API integration pattern
+## API Integration
 
-```jsx
-import { fetchSomething } from '../api/client';
-
-function MyComponent() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetchSomething().then(setData).finally(() => setLoading(false));
-  }, []);
-
-  if (loading) return <div className="loading-spinner" />;
-  return <div>{/* render data */}</div>;
-}
-```
-
-- All API calls go through `src/api/client.js` — never use `fetch` directly
+- All calls via `src/api/client.js` — never use `fetch` directly
+- `apiFetch()` auto-attaches JWT, auto-refreshes on 401
 - Add new endpoints as exported functions in `client.js`
-- Authenticated endpoints: `apiFetch` auto-attaches JWT; no extra handling
 
-## Auth-gated UI pattern
+## Auth Pattern
 
-```jsx
-import { useAuth } from '../context/AuthContext';
+- Content always public, never block behind auth
+- Auth-only: highlights, notes, subscriptions
+- Check `useAuth().user`, show "Sign In" prompt for anon (no hard block)
 
-function FeatureButton() {
-  const { user } = useAuth();
-  if (!user) return null; // or show "Sign in to use this feature"
-  return <button>Feature</button>;
-}
-```
+## Key Components
 
-- Content is always publicly viewable (never block behind auth)
-- Auth-only features: highlights, notes, saved progress (future)
-- Show a gentle prompt for anonymous users, never a hard block
+| Component | Purpose |
+|-----------|---------|
+| DeltaSpinner | Rotating triangle loader, `text` + `small` props |
+| NotesDrawer | Side-by-side panel (shifts content, no overlay) |
+| AuthModal | Portal to body (avoids stacking context) |
+| MermaidDiagram | Client-side Mermaid rendering |
+| HighlightPopup | Color picker (yellow/green/blue/pink) |
+| Sidebar | Chapter nav, scroll to current, collapsible on mobile |
+| UserButton | Auth menu (login/logout/highlights link) |
 
-## Adding a Mermaid diagram
+## Adding API Calls
 
-Diagrams are stored as plain Mermaid source strings in the backend.
+1. Add exported function in `src/api/client.js` using `apiFetch()`
+2. Import in component, call inside `useEffect` or event handler
+3. Handle loading with `<DeltaSpinner text="..." />`
+4. Handle errors with try/catch, show `window.alert` or inline message
 
-```
-graph LR
-  A[Client] --> B[Load Balancer]
-  B --> C[Server 1]
-  B --> D[Server 2]
-```
+## Environment
 
-- Keep diagrams mobile-friendly: max 6 nodes wide
-- Use `LR` (left-right) for horizontal flow, `TD` for vertical
-- Avoid `classDef` and complex styling — keep diagrams simple
-- If a diagram is too large, split into two diagrams (diagram + diagram2)
-
-## DeltaMails Subscription Page
-
-The subscribe page (`SubscribePage.jsx`) allows users to:
-
-- Select subjects to subscribe to
-- Choose difficulty level (easy/medium/hard/mixed)
-- Add an optional custom prompt (e.g., "focus on caching")
-- Submit via `POST /api/deltamails/subscribe/`
-
-API functions are in `src/api/client.js`:
-
-- `subscribeDeltaMails({ email, subjects, difficulty, custom_prompt })`
-- `fetchSubscriptions()` — list user's active subscriptions
-- `unsubscribeDeltaMails({ email, subject })` — deactivate a subscription
+- `VITE_API_URL` — backend base (`http://localhost:8000/api` locally, PythonAnywhere URL in production)
+- Set in `.env` for local dev, Netlify dashboard for production

@@ -11,89 +11,66 @@ React 19 + Vite 8 SPA consuming the Django REST backend.
 ## Architecture
 
 ```
-Delta-Learn-Frontend/
-├── src/
-│   ├── api/client.js           # All API calls + JWT token management
-│   ├── context/
-│   │   ├── ThemeContext.jsx     # Dark/light mode toggle (persisted)
-│   │   └── AuthContext.jsx      # JWT auth state, login/register/logout
-│   ├── components/
-│   │   ├── HomePage.jsx        # Landing page: subject cards, subscribe form
-│   │   ├── ChapterView.jsx     # Chapter renderer with Q&A sections
-│   │   ├── Sidebar.jsx         # Chapter navigation sidebar
-│   │   ├── MermaidDiagram.jsx  # Client-side Mermaid rendering
-│   │   ├── AuthModal.jsx       # Login/register modal (React Portal → body)
-│   │   ├── HighlightPopup.jsx  # Color picker for text highlights
-│   │   ├── NotesDrawer.jsx     # Slide-in notes panel
-│   │   ├── HighlightsPage.jsx  # My highlights view
-│   │   └── SubscribePage.jsx   # DeltaMails subscription form
-│   ├── App.jsx                 # Router + SubjectPage + UserButton
-│   ├── App.css                 # All styles (single CSS file)
-│   └── main.jsx                # Entry point with BrowserRouter
-├── public/
-│   ├── favicon.svg             # Delta triangle logo
-│   └── _redirects              # Netlify SPA routing
-└── index.html                  # Meta tags, OG tags, PWA config
+src/
+├── api/client.js           # API functions + JWT token management
+├── context/
+│   ├── ThemeContext.jsx     # Dark mode (persisted, no toggle in UI)
+│   └── AuthContext.jsx      # JWT auth state, login/register/logout
+├── components/
+│   ├── HomePage.jsx        # Subject cards
+│   ├── ChapterView.jsx     # Chapter renderer, highlighting, Ctrl+Z undo
+│   ├── Sidebar.jsx         # Chapter navigation
+│   ├── MermaidDiagram.jsx  # Client-side Mermaid rendering
+│   ├── AuthModal.jsx       # Login/register (Portal → body)
+│   ├── HighlightPopup.jsx  # Color picker for highlights
+│   ├── NotesDrawer.jsx     # Side-by-side notes panel (shifts main content)
+│   ├── HighlightsPage.jsx  # All user highlights
+│   ├── SubscribePage.jsx   # DeltaMails subscription
+│   └── DeltaSpinner.jsx    # Animated triangle loader
+├── App.jsx                 # Router + SubjectPage + UserButton
+├── App.css                 # All styles (single file, dark theme)
+└── main.jsx                # Entry with BrowserRouter
 ```
 
-## Routing
+## Routes
 
-| Path                        | Component       | Notes                      |
-|-----------------------------|-----------------|----------------------------|
-| `/`                         | HomePage        | Landing with 3 subject cards |
-| `/highlights`               | HighlightsPage  | All user highlights          |
-| `/subscribe`                | SubscribePage   | DeltaMails subscription form |
-| `/:subject/chapter/:id`    | SubjectPage     | Sidebar + ChapterView       |
-| `/:subject`                | SubjectRedirect | Redirects to chapter/1       |
+| Path | Component | Notes |
+|------|-----------|-------|
+| `/` | HomePage | Subject cards |
+| `/highlights` | HighlightsPage | User highlights |
+| `/subscribe` | SubscribePage | DeltaMails form |
+| `/:subject/chapter/:id` | SubjectPage | Sidebar + ChapterView |
+| `/:subject` | SubjectRedirect | → chapter/1 |
 
 ## API Client (`src/api/client.js`)
 
-- `BASE_URL` from `VITE_API_URL` env var, defaults to `http://localhost:8000/api`
-- All requests go through `apiFetch()` which auto-attaches JWT Bearer token
-- On 401, auto-refreshes the access token using the stored refresh token
-- Tokens stored in `localStorage` under key `delta_tokens`
+- `BASE_URL` from `VITE_API_URL`, default `http://localhost:8000/api`
+- `apiFetch()`: auto-attaches JWT Bearer, auto-refreshes on 401
+- Tokens in `localStorage` key `delta_tokens`
 
-### Available functions
-- Public: `fetchSubjects()`, `fetchSubjectDetail(slug)`, `fetchChapter(slug, num)`
-- Auth: `register()`, `login()`, `logout()`, `fetchMe()`, `isLoggedIn()`
-- Highlights: `fetchHighlights(params)`, `createHighlight(data)`, `deleteHighlight(id)`
-- Notes: `fetchNotes(params)`, `createNote(data)`, `updateNote(id, data)`, `deleteNote(id)`, `analyzeNote(id)`
-- DeltaMails: `fetchSubscriptions()`, `subscribeDeltaMails(data)`, `updateSubscriptionPreferences(id, data)`, `unsubscribeDeltaMails(data)`
+### Functions (21)
+- Public: `fetchSubjects`, `fetchSubjectDetail`, `fetchChapter`
+- Auth: `register`, `login`, `logout`, `fetchMe`, `isLoggedIn`
+- Highlights: `fetchHighlights`, `createHighlight`, `updateHighlight`, `deleteHighlight`
+- Notes: `fetchNotes`, `createNote`, `updateNote`, `deleteNote`, `analyzeNote`
+- DeltaMails: `fetchSubscriptions`, `subscribeDeltaMails`, `updateSubscriptionPreferences`, `unsubscribeDeltaMails`
 
-## Design System
+## Design
 
-### Theme
-- Apple-inspired dark mode as default; light mode toggle available
-- All colors via CSS custom properties in `:root` / `[data-theme="light"]`
-- Per-subject accent color set dynamically via `--accent` on `<html>`
+- Apple-inspired dark theme (no light/dark toggle in UI)
+- CSS custom properties: `--accent` set per-subject dynamically
+- Subject colors: System Design #0a84ff, DSA #30d158, AI #ff9f0a
+- `DeltaSpinner`: rotating triangle SVG loader used across all loading states
+- NotesDrawer: flexbox side-by-side (shifts main content, no overlay/blur)
 
-### Subject accent colors
-| Subject           | Color   |
-|-------------------|---------|
-| System Design     | #0a84ff |
-| DSA Patterns      | #30d158 |
-| AI for Engineers  | #ff9f0a |
+## Conventions
 
-## Component Conventions
-
-### Data flow
-- `SubjectPage` fetches subject detail + chapter data, passes down as props
-- `Sidebar` and `ChapterView` are pure display components (no direct API calls)
-- Highlights and notes are fetched in `SubjectPage`, callbacks passed down
-
-### Modal rendering
-- `AuthModal` uses `createPortal(jsx, document.body)` to render outside the component tree
-- This avoids stacking context issues caused by `backdrop-filter` on parent elements
-- All modals should follow this pattern
-
-### Authenticated features
-- Wrap with `useAuth()` — check `user` before rendering auth-only UI
-- Show "Sign In" button for anonymous users (never block content)
-- Highlights: text selection → HighlightPopup → save via API
-- Notes: drawer panel, scoped per-chapter or per-subject
+- `SubjectPage` fetches data, passes props down; `Sidebar`/`ChapterView` are display-only
+- `AuthModal` uses `createPortal(jsx, document.body)` to avoid stacking context issues
+- Highlights: text selection → auto-save → Ctrl+Z undo via delete API
+- Authenticated features: check `useAuth().user`, show "Sign In" for anon
 
 ## Deployment
 
-- **Netlify**: `npm run build` → `dist/` output
-- SPA routing handled by `public/_redirects` (`/* /index.html 200`)
-- Set `VITE_API_URL` env var in Netlify to point to PythonAnywhere backend
+- Netlify: `npm run build` → `dist/`, SPA via `public/_redirects`
+- Set `VITE_API_URL` env var to PythonAnywhere backend URL
