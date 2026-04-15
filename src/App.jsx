@@ -1,22 +1,66 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 import ChapterView from './components/ChapterView';
 import HomePage from './components/HomePage';
-import { fetchSubjectDetail, fetchChapter } from './api/client';
+import AuthModal from './components/AuthModal';
+import NotesDrawer from './components/NotesDrawer';
+import { fetchSubjectDetail, fetchChapter, fetchHighlights } from './api/client';
 import './App.css';
+
+function UserButton() {
+  const { user, logoutUser } = useAuth();
+  const [showAuth, setShowAuth] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  if (!user) {
+    return (
+      <>
+        <button className="topbar-btn topbar-signin" onClick={() => setShowAuth(true)}>
+          Sign In
+        </button>
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      </>
+    );
+  }
+
+  return (
+    <div className="user-menu-wrap">
+      <button className="topbar-btn topbar-user" onClick={() => setMenuOpen(!menuOpen)}>
+        {user.username.charAt(0).toUpperCase()}
+      </button>
+      {menuOpen && (
+        <>
+          <div className="user-menu-backdrop" onClick={() => setMenuOpen(false)} />
+          <div className="user-menu">
+            <div className="user-menu-name">{user.username}</div>
+            <div className="user-menu-email">{user.email}</div>
+            <hr className="user-menu-divider" />
+            <button className="user-menu-item" onClick={() => { logoutUser(); setMenuOpen(false); }}>
+              Sign Out
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
 
 function SubjectPage() {
   const { dark, toggle } = useTheme();
+  const { user } = useAuth();
   const { subject: subjectSlug, id } = useParams();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(false);
   const mainRef = useRef(null);
 
   const [subject, setSubject] = useState(null);
   const [chapters, setChapters] = useState([]);
   const [activeChapter, setActiveChapter] = useState(null);
+  const [highlights, setHighlights] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chapterLoading, setChapterLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -58,6 +102,15 @@ function SubjectPage() {
       });
     return () => { cancelled = true; };
   }, [subjectSlug, activeId]);
+
+  const refreshHighlights = useCallback(() => {
+    if (!user) { setHighlights([]); return; }
+    fetchHighlights({ subject: subjectSlug, chapter: activeId })
+      .then(setHighlights)
+      .catch(() => setHighlights([]));
+  }, [user, subjectSlug, activeId]);
+
+  useEffect(() => { refreshHighlights(); }, [refreshHighlights]);
 
   useEffect(() => {
     if (subject) {
@@ -128,9 +181,19 @@ function SubjectPage() {
             <button className="topbar-btn" onClick={navNext} disabled={activeId >= chapters.length}>
               Next →
             </button>
+            {user && (
+              <button
+                className="topbar-btn"
+                onClick={() => setNotesOpen(true)}
+                title="Notes"
+              >
+                Notes
+              </button>
+            )}
             <button className="topbar-btn" onClick={toggle} title="Toggle theme">
               {dark ? '☀' : '☽'}
             </button>
+            <UserButton />
           </div>
         </div>
 
@@ -139,9 +202,21 @@ function SubjectPage() {
             <p style={{ color: 'var(--text-tertiary)' }}>Loading chapter…</p>
           </div>
         ) : (
-          <ChapterView chapter={activeChapter} />
+          <ChapterView
+            chapter={activeChapter}
+            highlights={highlights}
+            onHighlightsChange={refreshHighlights}
+          />
         )}
       </div>
+
+      {notesOpen && subject && (
+        <NotesDrawer
+          subjectSlug={subjectSlug}
+          chapterNumber={activeId}
+          onClose={() => setNotesOpen(false)}
+        />
+      )}
     </div>
   );
 }
@@ -164,12 +239,14 @@ function SubjectRedirect() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/:subject/chapter/:id" element={<SubjectPage />} />
-        <Route path="/:subject" element={<SubjectRedirect />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/:subject/chapter/:id" element={<SubjectPage />} />
+          <Route path="/:subject" element={<SubjectRedirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { fetchSubjects } from '../api/client';
+import AuthModal from './AuthModal';
 
 export default function HomePage() {
   const { dark, toggle } = useTheme();
+  const { user, logoutUser } = useAuth();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     fetchSubjects()
@@ -31,10 +35,20 @@ export default function HomePage() {
           <img src="/favicon.svg" alt="Delta" className="home-logo-small" />
           <span>Delta Learn</span>
         </div>
-        <button className="topbar-btn" onClick={toggle} title="Toggle theme">
-          {dark ? '☀' : '☽'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <button className="topbar-btn" onClick={toggle} title="Toggle theme">
+            {dark ? '☀' : '☽'}
+          </button>
+          {user ? (
+            <button className="topbar-btn" onClick={logoutUser}>{user.username}</button>
+          ) : (
+            <button className="topbar-btn topbar-signin" onClick={() => setShowAuth(true)}>
+              Sign In
+            </button>
+          )}
+        </div>
       </div>
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
       <section className="home-hero">
         <img src="/favicon.svg" alt="Delta" className="home-logo" />

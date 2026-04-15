@@ -1,6 +1,64 @@
+import { useCallback, useEffect, useRef, useState } from 'react';
 import MermaidDiagram from './MermaidDiagram';
+import HighlightPopup from './HighlightPopup';
+import { useAuth } from '../context/AuthContext';
+import { createHighlight, deleteHighlight } from '../api/client';
 
-export default function ChapterView({ chapter }) {
+const HIGHLIGHT_COLORS = {
+  yellow: 'rgba(255,214,0,0.28)',
+  green: 'rgba(48,209,88,0.25)',
+  blue: 'rgba(10,132,255,0.22)',
+  pink: 'rgba(255,55,95,0.22)',
+};
+
+export default function ChapterView({ chapter, highlights = [], onHighlightsChange }) {
+  const { user } = useAuth();
+  const [popup, setPopup] = useState(null);
+  const containerRef = useRef(null);
+
+  const handleTextSelect = useCallback((questionIndex) => {
+    if (!user) return;
+    const sel = window.getSelection();
+    const text = sel?.toString().trim();
+    if (!text || text.length < 3) { setPopup(null); return; }
+
+    const range = sel.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    if (!containerRect) return;
+
+    setPopup({
+      text,
+      questionIndex,
+      x: rect.left - containerRect.left + rect.width / 2,
+      y: rect.top - containerRect.top - 8,
+    });
+  }, [user]);
+
+  useEffect(() => {
+    function onClickOutside() { setPopup(null); }
+    document.addEventListener('click', onClickOutside);
+    return () => document.removeEventListener('click', onClickOutside);
+  }, []);
+
+  async function handleSaveHighlight(color) {
+    if (!popup || !chapter) return;
+    await createHighlight({
+      chapter: chapter._dbId,
+      question_index: popup.questionIndex,
+      text: popup.text,
+      color,
+    });
+    setPopup(null);
+    window.getSelection()?.removeAllRanges();
+    onHighlightsChange?.();
+  }
+
+  async function handleDeleteHighlight(id) {
+    await deleteHighlight(id);
+    onHighlightsChange?.();
+  }
+
   if (!chapter) {
     return (
       <div className="chapter-container" style={{ textAlign: 'center', paddingTop: 120 }}>
@@ -10,9 +68,10 @@ export default function ChapterView({ chapter }) {
   }
 
   const total = chapter.questions?.length || 0;
+  const chapterHighlights = highlights.filter(h => h.chapter_number === chapter.id);
 
   return (
-    <div className="chapter-container">
+    <div className="chapter-container" ref={containerRef} style={{ position: 'relative' }}>
       <header className="chapter-header">
         {chapter.part && (
           <span className="chapter-part-badge">{chapter.part}</span>
@@ -26,8 +85,34 @@ export default function ChapterView({ chapter }) {
         )}
       </header>
 
+      {user && chapterHighlights.length > 0 && (
+        <div className="highlights-bar">
+          <div className="highlights-bar-title">Your Highlights ({chapterHighlights.length})</div>
+          <div className="highlights-list">
+            {chapterHighlights.map((h) => (
+              <div key={h.id} className="highlight-chip" style={{ borderLeftColor: HIGHLIGHT_COLORS[h.color]?.replace(/[\d.]+\)$/, '1)') }}>
+                <span className="highlight-chip-text">{h.text}</span>
+                <button
+                  className="highlight-chip-delete"
+                  onClick={() => handleDeleteHighlight(h.id)}
+                  title="Remove highlight"
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {chapter.questions?.map((q, i) => (
-        <QASection key={i} q={q} index={i} total={total} />
+        <QASection
+          key={i}
+          q={q}
+          index={i}
+          total={total}
+          onMouseUp={() => handleTextSelect(i)}
+        />
       ))}
 
       {chapter.takeaways?.length > 0 && (
@@ -40,13 +125,22 @@ export default function ChapterView({ chapter }) {
           </div>
         </div>
       )}
+
+      {popup && (
+        <HighlightPopup
+          x={popup.x}
+          y={popup.y}
+          onSave={handleSaveHighlight}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }
 
-function QASection({ q, index, total }) {
+function QASection({ q, index, total, onMouseUp }) {
   return (
-    <section className="qa">
+    <section className="qa" onMouseUp={onMouseUp}>
       <div className="qa-header">
         <span className="qa-num">{String(index + 1).padStart(2, '0')}/{String(total).padStart(2, '0')}</span>
         {q.difficulty && (
