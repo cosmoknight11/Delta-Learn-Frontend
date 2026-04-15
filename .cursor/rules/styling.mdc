@@ -1,0 +1,45 @@
+---
+description: CSS and styling conventions for Delta Learn Frontend
+globs: "**/*.css"
+---
+
+# Styling Conventions
+
+## Single CSS file
+- All styles live in `src/App.css` — no CSS modules, no separate files
+- Organize with section headers: `/* ───── ComponentName ───── */`
+
+## CSS custom properties
+- Never hardcode colors — always use `var(--property-name)`
+- `--accent` is set dynamically per subject; use it for all interactive elements
+- `--bg-primary`, `--bg-secondary`, `--bg-elevated` for backgrounds
+- `--text-primary`, `--text-secondary` for text
+- `--border`, `--border-strong` for dividers
+
+## Dark/light mode
+- Dark mode is the default (`:root` block)
+- Light mode overrides go under `[data-theme="light"]`
+- Test both modes when adding new styles
+
+## Responsive breakpoints
+```css
+@media (max-width: 768px) { /* Tablet: sidebar collapses */ }
+@media (max-width: 520px) { /* Phone: stack everything vertically */ }
+```
+
+## Layout patterns
+- Sidebar + content: CSS Grid (`grid-template-columns: 280px 1fr`)
+- Card grids: Flexbox with `flex-wrap: wrap`
+- Content max-width: `780px` centered
+- Spacing: use multiples of 4px (4, 8, 12, 16, 20, 24, 32, 40, 48)
+
+## Mermaid diagrams
+- Container has `overflow-x: auto` for mobile scrolling
+- Max width on desktop; no max on mobile
+- Captions use `--text-secondary` color
+
+## Interactive elements
+- Buttons: `background: var(--accent)`, `border-radius: var(--radius-sm)`
+- Hover states: `var(--accent-hover)` or `var(--bg-hover)`
+- Focus states: visible outline using accent color
+- Transitions: `0.15s ease` for color changes, `0.2s ease` for transforms

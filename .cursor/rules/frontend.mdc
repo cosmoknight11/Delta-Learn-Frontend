@@ -1,0 +1,110 @@
+---
+description: Delta Learn Frontend — React + Vite conventions
+globs: "**/*.{jsx,js,css}"
+alwaysApply: true
+---
+
+# Delta Learn Frontend
+
+React 19 + Vite 8 SPA consuming the Django REST backend.
+
+## Architecture
+
+```
+Delta-Learn-Frontend/
+├── src/
+│   ├── api/client.js           # All API calls + JWT token management
+│   ├── context/
+│   │   ├── ThemeContext.jsx     # Dark/light mode toggle (persisted)
+│   │   └── AuthContext.jsx      # JWT auth state, login/register/logout
+│   ├── components/
+│   │   ├── HomePage.jsx        # Landing page: subject cards, subscribe form
+│   │   ├── ChapterView.jsx     # Chapter renderer with Q&A sections
+│   │   ├── Sidebar.jsx         # Chapter navigation sidebar
+│   │   ├── MermaidDiagram.jsx  # Client-side Mermaid rendering
+│   │   ├── AuthModal.jsx       # Login/register modal
+│   │   ├── HighlightPopup.jsx  # Color picker for text highlights
+│   │   └── NotesDrawer.jsx     # Slide-in notes panel
+│   ├── App.jsx                 # Router + SubjectPage + UserButton
+│   ├── App.css                 # All styles (single CSS file)
+│   └── main.jsx                # Entry point with BrowserRouter
+├── public/
+│   ├── favicon.svg             # Delta triangle logo
+│   └── _redirects              # Netlify SPA routing
+└── index.html                  # Meta tags, OG tags, PWA config
+```
+
+## Routing
+
+| Path                        | Component       | Notes                      |
+|-----------------------------|-----------------|----------------------------|
+| `/`                         | HomePage        | Landing with 3 subject cards |
+| `/:subject/chapter/:id`    | SubjectPage     | Sidebar + ChapterView       |
+| `/:subject`                | SubjectRedirect | Redirects to chapter/1       |
+
+## API Client (`src/api/client.js`)
+
+- `BASE_URL` from `VITE_API_URL` env var, defaults to `http://localhost:8000/api`
+- All requests go through `apiFetch()` which auto-attaches JWT Bearer token
+- On 401, auto-refreshes the access token using the stored refresh token
+- Tokens stored in `localStorage` under key `delta_tokens`
+
+### Available functions
+- Public: `fetchSubjects()`, `fetchSubjectDetail(slug)`, `fetchChapter(slug, num)`
+- Auth: `register()`, `login()`, `logout()`, `fetchMe()`, `isLoggedIn()`
+- Highlights: `fetchHighlights(params)`, `createHighlight(data)`, `deleteHighlight(id)`
+- Notes: `fetchNotes(params)`, `createNote(data)`, `updateNote(id, data)`, `deleteNote(id)`, `analyzeNote(id)`
+
+## Design System
+
+### Theme
+- Apple-inspired dark mode as default; light mode toggle available
+- All colors via CSS custom properties in `:root` / `[data-theme="light"]`
+- Per-subject accent color set dynamically via `--accent` on `<html>`
+
+### Key CSS variables
+| Variable         | Dark              | Purpose                    |
+|-----------------|-------------------|----------------------------|
+| `--bg-primary`  | `#000000`         | Page background            |
+| `--bg-secondary`| `#0d0d0d`         | Cards, sidebar, modals     |
+| `--text-primary`| `#f5f5f7`         | Headings, body text        |
+| `--accent`      | `#0a84ff` (default)| Links, buttons, highlights |
+| `--border`      | `rgba(255,255,255,0.06)` | Subtle dividers   |
+
+### Subject accent colors
+| Subject        | Color   | CSS variable set on |
+|---------------|---------|---------------------|
+| System Design | #0a84ff | --accent            |
+| DSA Patterns  | #30d158 | --accent            |
+| AI for Engineers | #ff9f0a | --accent          |
+
+## Component Conventions
+
+### Data flow
+- `SubjectPage` fetches subject detail + chapter data, passes down as props
+- `Sidebar` and `ChapterView` are pure display components (no direct API calls)
+- Highlights and notes are fetched in `SubjectPage`, callbacks passed down
+
+### HTML content rendering
+- Chapter content uses `dangerouslySetInnerHTML` for answer, points, followup, takeaways
+- `<mark>` tags used for critical advice
+- Mermaid diagrams rendered client-side via `MermaidDiagram` component
+
+### Adding a new component
+1. Create in `src/components/NameHere.jsx`
+2. Add all styles to `App.css` under a clearly labeled section header
+3. Use CSS custom properties, never hardcode colors
+4. Ensure it works in both dark and light mode
+5. Add responsive rules in the `@media` sections at the bottom of `App.css`
+
+### Authenticated features
+- Wrap with `useAuth()` — check `user` before rendering auth-only UI
+- Show "Sign In" button for anonymous users (never block content)
+- Highlights: text selection in QA sections → HighlightPopup → save via API
+- Notes: drawer panel, scoped per-chapter or per-subject
+
+## Deployment
+
+- **Netlify**: `npm run build` → `dist/` output
+- SPA routing handled by `public/_redirects` (`/* /index.html 200`)
+- Set `VITE_API_URL` env var in Netlify to point to PythonAnywhere backend

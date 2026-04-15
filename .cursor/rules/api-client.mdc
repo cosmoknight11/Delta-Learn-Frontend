@@ -1,0 +1,56 @@
+---
+description: API client and authentication patterns for Delta Learn Frontend
+globs: "**/api/**,**/context/**"
+---
+
+# API Client & Auth Patterns
+
+## API client (`src/api/client.js`)
+
+### Adding a new endpoint
+1. Add the function to `client.js`:
+
+```javascript
+export async function fetchNewThing(params) {
+  const qs = new URLSearchParams(params).toString();
+  return apiFetch(`/new-thing/?${qs}`);
+}
+```
+
+2. For authenticated endpoints, `apiFetch` auto-handles JWT tokens
+3. For POST/PATCH/DELETE, pass `method` and `body`:
+
+```javascript
+export async function createNewThing(data) {
+  return apiFetch('/new-thing/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+```
+
+### Token lifecycle
+- Tokens stored in `localStorage` under key `delta_tokens`
+- On 401 response, `apiFetch` auto-refreshes using the refresh token
+- If refresh fails, user is logged out (tokens cleared)
+- `isLoggedIn()` checks if tokens exist (does not validate them)
+
+## AuthContext (`src/context/AuthContext.jsx`)
+
+### Available from `useAuth()`
+| Field/Fn       | Type     | Notes                         |
+|---------------|----------|-------------------------------|
+| `user`        | object   | `null` when not authenticated |
+| `loading`     | boolean  | `true` during initial check   |
+| `loginUser`   | fn       | `(username, password) => Promise` |
+| `registerUser`| fn       | `(username, email, password) => Promise` |
+| `logoutUser`  | fn       | Clears tokens and user state  |
+
+### Auth guard pattern
+- Never block content behind auth — content is always public
+- Use `if (!user) return null` to hide auth-only UI elements
+- Show a "Sign In" prompt instead of hiding features completely
+
+## Environment variables
+- `VITE_API_URL` — backend base URL (default: `http://localhost:8000/api`)
+- Set in `.env` locally or in Netlify deploy settings for production
