@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchSubjects } from '../api/client';
 import AuthModal from './AuthModal';
 import DeltaSpinner from './DeltaSpinner';
 
 export default function HomePage() {
-  const { dark, toggle } = useTheme();
   const { user, logoutUser } = useAuth();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -27,9 +25,6 @@ export default function HomePage() {
           <span>Delta Learn</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="topbar-btn" onClick={toggle} title="Toggle theme">
-            {dark ? '☀' : '☽'}
-          </button>
           {user ? (
             <button className="topbar-btn" onClick={logoutUser}>{user.username}</button>
           ) : (

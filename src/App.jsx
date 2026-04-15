@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
-import { ThemeProvider, useTheme } from './context/ThemeContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 import ChapterView from './components/ChapterView';
@@ -71,7 +71,6 @@ function UserButton({ onOpenNotes }) {
 }
 
 function SubjectPage() {
-  const { dark, toggle } = useTheme();
   const { user } = useAuth();
   const { subject: subjectSlug, id } = useParams();
   const navigate = useNavigate();
@@ -202,9 +201,6 @@ function SubjectPage() {
             </button>
             <button className="topbar-btn" onClick={navNext} disabled={activeId >= chapters.length}>
               Next →
-            </button>
-            <button className="topbar-btn" onClick={toggle} title="Toggle theme">
-              {dark ? '☀' : '☽'}
             </button>
             <UserButton onOpenNotes={() => setNotesOpen(true)} />
           </div>

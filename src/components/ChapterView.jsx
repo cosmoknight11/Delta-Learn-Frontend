@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import MermaidDiagram from './MermaidDiagram';
 import HighlightPopup from './HighlightPopup';
 import { useAuth } from '../context/AuthContext';
-import { createHighlight, updateHighlight } from '../api/client';
+import { createHighlight, updateHighlight, deleteHighlight } from '../api/client';
 
 const INLINE_HL_COLORS = {
   yellow: 'rgba(255,214,0,0.35)',
@@ -122,6 +122,7 @@ export default function ChapterView({ chapter, highlights = [], onHighlightsChan
   }, [chapterHighlights, chapter]);
 
   const savingRef = useRef(false);
+  const undoStackRef = useRef([]);
 
   useEffect(() => {
     if (!user) return;
@@ -163,6 +164,7 @@ export default function ChapterView({ chapter, highlights = [], onHighlightsChan
             color: 'yellow',
           });
           window.getSelection()?.removeAllRanges();
+          undoStackRef.current.push(saved.id);
           refreshRef.current?.();
           setPopup({ highlightId: saved.id, x, y });
         } catch { /* ignore */ }
@@ -175,6 +177,23 @@ export default function ChapterView({ chapter, highlights = [], onHighlightsChan
       document.removeEventListener('selectionchange', onSelectionChange);
       clearTimeout(timer);
     };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'z' && !e.shiftKey) {
+        const id = undoStackRef.current.pop();
+        if (!id) return;
+        e.preventDefault();
+        deleteHighlight(id)
+          .then(() => refreshRef.current?.())
+          .catch(() => undoStackRef.current.push(id));
+        setPopup(null);
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [user]);
 
   useEffect(() => {

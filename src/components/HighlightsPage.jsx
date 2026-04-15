@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchHighlights, deleteHighlight } from '../api/client';
 import AuthModal from './AuthModal';
@@ -39,7 +38,6 @@ function groupHighlights(highlights) {
 }
 
 export default function HighlightsPage() {
-  const { dark, toggle } = useTheme();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [highlights, setHighlights] = useState([]);
@@ -71,9 +69,6 @@ export default function HighlightsPage() {
           </Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="topbar-btn" onClick={toggle} title="Toggle theme">
-            {dark ? '☀' : '☽'}
-          </button>
           {user ? (
             <button className="topbar-btn" onClick={() => navigate('/')}>{user.username}</button>
           ) : (

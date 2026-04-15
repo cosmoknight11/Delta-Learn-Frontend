@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchSubjects, subscribeDeltaMails } from '../api/client';
 import AuthModal from './AuthModal';
 import DeltaSpinner from './DeltaSpinner';
 
 export default function SubscribePage() {
-  const { dark, toggle } = useTheme();
   const { user, logoutUser } = useAuth();
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
@@ -69,9 +67,6 @@ export default function SubscribePage() {
           </Link>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <button className="topbar-btn" onClick={toggle} title="Toggle theme">
-            {dark ? '☀' : '☽'}
-          </button>
           {user ? (
             <button className="topbar-btn" onClick={logoutUser}>{user.username}</button>
           ) : (
