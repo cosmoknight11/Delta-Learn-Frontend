@@ -53,6 +53,58 @@
   --border-strong: rgba(0, 0, 0, 0.12);
 }
 
+/* ═══════════════════════════════════════════════════
+   DELTA SPINNER — Rotating triangle loader
+   ═══════════════════════════════════════════════════ */
+
+.delta-loader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  padding: 60px 0;
+}
+
+.delta-spinner {
+  width: 44px;
+  height: 44px;
+  animation: deltaRotate 1.4s var(--ease) infinite;
+}
+
+.delta-spinner-triangle {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 140;
+  stroke-dashoffset: 140;
+  animation: deltaDraw 1.4s var(--ease) infinite;
+}
+
+.delta-loader-text {
+  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.04em;
+  font-weight: 500;
+}
+
+.delta-loader-sm { padding: 24px 0; }
+.delta-loader-sm .delta-spinner { width: 28px; height: 28px; }
+.delta-loader-sm .delta-loader-text { font-size: 0.78rem; }
+
+@keyframes deltaRotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes deltaDraw {
+  0%   { stroke-dashoffset: 140; opacity: 0.4; }
+  50%  { stroke-dashoffset: 0;   opacity: 1; }
+  100% { stroke-dashoffset: -140; opacity: 0.4; }
+}
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; }
 
@@ -301,9 +353,11 @@ ul, ol { padding-left: 0; list-style: none; }
 /* ── Main Content ── */
 .main-content {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow-y: auto;
   scroll-behavior: smooth;
+  transition: flex 0.25s var(--ease);
 }
 
 .chapter-container {
@@ -1270,7 +1324,10 @@ ul, ol { padding-left: 0; list-style: none; }
   .subscribe-form { flex-direction: column; }
   .deltamail-options { flex-direction: column; }
   .home-topbar { padding: 12px 16px; }
-  .notes-drawer { width: 100%; }
+  .notes-drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 160;
+    width: 100%; min-width: unset; max-width: 100%;
+  }
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1454,21 +1511,22 @@ mark.inline-hl {
    ═══════════════════════════════════════════════════ */
 
 .notes-backdrop {
-  position: fixed; inset: 0; z-index: 150;
-  background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+  display: none;
 }
 
 .notes-drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 160;
-  width: 420px; max-width: 100%;
+  width: 420px; min-width: 420px; max-width: 420px;
+  height: 100dvh;
   background: var(--bg-primary); border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0,0,0,0.3);
   display: flex; flex-direction: column;
   animation: slideRight 0.25s var(--ease);
+  overflow-y: auto;
 }
 
 @keyframes slideRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { margin-right: -420px; }
+  to { margin-right: 0; }
 }
 
 .notes-header {

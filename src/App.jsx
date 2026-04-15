@@ -9,6 +9,7 @@ import SubscribePage from './components/SubscribePage';
 import HighlightsPage from './components/HighlightsPage';
 import AuthModal from './components/AuthModal';
 import NotesDrawer from './components/NotesDrawer';
+import DeltaSpinner from './components/DeltaSpinner';
 import { fetchSubjectDetail, fetchChapter, fetchHighlights } from './api/client';
 import './App.css';
 
@@ -148,7 +149,7 @@ function SubjectPage() {
   if (loading) {
     return (
       <div className="app-shell" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Loading…</p>
+        <DeltaSpinner text="Loading subject…" />
       </div>
     );
   }
@@ -210,8 +211,8 @@ function SubjectPage() {
         </div>
 
         {chapterLoading ? (
-          <div className="chapter-container" style={{ textAlign: 'center', paddingTop: 120 }}>
-            <p style={{ color: 'var(--text-tertiary)' }}>Loading chapter…</p>
+          <div className="chapter-container" style={{ paddingTop: 80 }}>
+            <DeltaSpinner text="Loading chapter…" />
           </div>
         ) : (
           <ChapterView

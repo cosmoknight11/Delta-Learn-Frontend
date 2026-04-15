@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchHighlights, deleteHighlight } from '../api/client';
 import AuthModal from './AuthModal';
+import DeltaSpinner from './DeltaSpinner';
 
 const COLORS = {
   yellow: '#ffd600',
@@ -98,7 +99,7 @@ export default function HighlightsPage() {
             <button className="subscribe-btn" onClick={() => setShowAuth(true)}>Sign In</button>
           </div>
         ) : loading ? (
-          <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Loading...</p>
+          <DeltaSpinner text="Loading highlights…" />
         ) : subjectKeys.length === 0 ? (
           <div className="hl-empty">
             <div className="hl-empty-icon">&#9998;</div>

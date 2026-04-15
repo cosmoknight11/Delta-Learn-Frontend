@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchSubjects } from '../api/client';
 import AuthModal from './AuthModal';
+import DeltaSpinner from './DeltaSpinner';
 
 export default function HomePage() {
   const { dark, toggle } = useTheme();
@@ -51,9 +52,9 @@ export default function HomePage() {
 
       <section className="home-subjects">
         {loading ? (
-          <p style={{ color: 'var(--text-secondary)', gridColumn: '1 / -1', textAlign: 'center' }}>
-            Loading subjects…
-          </p>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <DeltaSpinner text="Loading subjects…" />
+          </div>
         ) : (
           subjects.map((s) => (
             <Link

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchNotes, createNote, updateNote, deleteNote, analyzeNote } from '../api/client';
+import DeltaSpinner from './DeltaSpinner';
 
 export default function NotesDrawer({ subjectSlug, chapterNumber, onClose }) {
   const [scope, setScope] = useState('chapter');
@@ -49,8 +50,6 @@ export default function NotesDrawer({ subjectSlug, chapterNumber, onClose }) {
   }
 
   return (
-    <>
-      <div className="notes-backdrop" onClick={onClose} />
       <aside className="notes-drawer">
         <div className="notes-header">
           <h3 className="notes-title">Notes</h3>
@@ -86,7 +85,7 @@ export default function NotesDrawer({ subjectSlug, chapterNumber, onClose }) {
         </form>
 
         <div className="notes-list">
-          {loading && <p className="notes-empty">Loading…</p>}
+          {loading && <DeltaSpinner small text="Loading notes…" />}
           {!loading && notes.length === 0 && (
             <p className="notes-empty">No notes yet. Start writing!</p>
           )}
@@ -147,6 +146,5 @@ export default function NotesDrawer({ subjectSlug, chapterNumber, onClose }) {
           ))}
         </div>
       </aside>
-    </>
   );
 }

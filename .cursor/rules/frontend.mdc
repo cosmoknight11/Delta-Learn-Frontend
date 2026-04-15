@@ -24,7 +24,9 @@ Delta-Learn-Frontend/
 │   │   ├── MermaidDiagram.jsx  # Client-side Mermaid rendering
 │   │   ├── AuthModal.jsx       # Login/register modal (React Portal → body)
 │   │   ├── HighlightPopup.jsx  # Color picker for text highlights
-│   │   └── NotesDrawer.jsx     # Slide-in notes panel
+│   │   ├── NotesDrawer.jsx     # Slide-in notes panel
+│   │   ├── HighlightsPage.jsx  # My highlights view
+│   │   └── SubscribePage.jsx   # DeltaMails subscription form
 │   ├── App.jsx                 # Router + SubjectPage + UserButton
 │   ├── App.css                 # All styles (single CSS file)
 │   └── main.jsx                # Entry point with BrowserRouter
@@ -39,6 +41,8 @@ Delta-Learn-Frontend/
 | Path                        | Component       | Notes                      |
 |-----------------------------|-----------------|----------------------------|
 | `/`                         | HomePage        | Landing with 3 subject cards |
+| `/highlights`               | HighlightsPage  | All user highlights          |
+| `/subscribe`                | SubscribePage   | DeltaMails subscription form |
 | `/:subject/chapter/:id`    | SubjectPage     | Sidebar + ChapterView       |
 | `/:subject`                | SubjectRedirect | Redirects to chapter/1       |
 
@@ -54,6 +58,7 @@ Delta-Learn-Frontend/
 - Auth: `register()`, `login()`, `logout()`, `fetchMe()`, `isLoggedIn()`
 - Highlights: `fetchHighlights(params)`, `createHighlight(data)`, `deleteHighlight(id)`
 - Notes: `fetchNotes(params)`, `createNote(data)`, `updateNote(id, data)`, `deleteNote(id)`, `analyzeNote(id)`
+- DeltaMails: `fetchSubscriptions()`, `subscribeDeltaMails(data)`, `updateSubscriptionPreferences(id, data)`, `unsubscribeDeltaMails(data)`
 
 ## Design System
 

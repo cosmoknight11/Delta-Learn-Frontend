@@ -114,3 +114,18 @@ graph LR
 - Use `LR` (left-right) for horizontal flow, `TD` for vertical
 - Avoid `classDef` and complex styling — keep diagrams simple
 - If a diagram is too large, split into two diagrams (diagram + diagram2)
+
+## DeltaMails Subscription Page
+
+The subscribe page (`SubscribePage.jsx`) allows users to:
+
+- Select subjects to subscribe to
+- Choose difficulty level (easy/medium/hard/mixed)
+- Add an optional custom prompt (e.g., "focus on caching")
+- Submit via `POST /api/deltamails/subscribe/`
+
+API functions are in `src/api/client.js`:
+
+- `subscribeDeltaMails({ email, subjects, difficulty, custom_prompt })`
+- `fetchSubscriptions()` — list user's active subscriptions
+- `unsubscribeDeltaMails({ email, subject })` — deactivate a subscription

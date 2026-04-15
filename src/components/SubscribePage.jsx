@@ -4,6 +4,7 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { fetchSubjects, subscribeDeltaMails } from '../api/client';
 import AuthModal from './AuthModal';
+import DeltaSpinner from './DeltaSpinner';
 
 export default function SubscribePage() {
   const { dark, toggle } = useTheme();
@@ -101,7 +102,7 @@ export default function SubscribePage() {
             </Link>
           </div>
         ) : loading ? (
-          <p style={{ color: 'var(--text-secondary)', textAlign: 'center' }}>Loading...</p>
+          <DeltaSpinner text="Loading…" />
         ) : (
           <form className="subscribe-page-form" onSubmit={handleSubscribe}>
             <div className="subscribe-page-field">
