@@ -22,7 +22,7 @@ Delta-Learn-Frontend/
 │   │   ├── ChapterView.jsx     # Chapter renderer with Q&A sections
 │   │   ├── Sidebar.jsx         # Chapter navigation sidebar
 │   │   ├── MermaidDiagram.jsx  # Client-side Mermaid rendering
-│   │   ├── AuthModal.jsx       # Login/register modal
+│   │   ├── AuthModal.jsx       # Login/register modal (React Portal → body)
 │   │   ├── HighlightPopup.jsx  # Color picker for text highlights
 │   │   └── NotesDrawer.jsx     # Slide-in notes panel
 │   ├── App.jsx                 # Router + SubjectPage + UserButton
@@ -62,21 +62,12 @@ Delta-Learn-Frontend/
 - All colors via CSS custom properties in `:root` / `[data-theme="light"]`
 - Per-subject accent color set dynamically via `--accent` on `<html>`
 
-### Key CSS variables
-| Variable         | Dark              | Purpose                    |
-|-----------------|-------------------|----------------------------|
-| `--bg-primary`  | `#000000`         | Page background            |
-| `--bg-secondary`| `#0d0d0d`         | Cards, sidebar, modals     |
-| `--text-primary`| `#f5f5f7`         | Headings, body text        |
-| `--accent`      | `#0a84ff` (default)| Links, buttons, highlights |
-| `--border`      | `rgba(255,255,255,0.06)` | Subtle dividers   |
-
 ### Subject accent colors
-| Subject        | Color   | CSS variable set on |
-|---------------|---------|---------------------|
-| System Design | #0a84ff | --accent            |
-| DSA Patterns  | #30d158 | --accent            |
-| AI for Engineers | #ff9f0a | --accent          |
+| Subject           | Color   |
+|-------------------|---------|
+| System Design     | #0a84ff |
+| DSA Patterns      | #30d158 |
+| AI for Engineers  | #ff9f0a |
 
 ## Component Conventions
 
@@ -85,22 +76,15 @@ Delta-Learn-Frontend/
 - `Sidebar` and `ChapterView` are pure display components (no direct API calls)
 - Highlights and notes are fetched in `SubjectPage`, callbacks passed down
 
-### HTML content rendering
-- Chapter content uses `dangerouslySetInnerHTML` for answer, points, followup, takeaways
-- `<mark>` tags used for critical advice
-- Mermaid diagrams rendered client-side via `MermaidDiagram` component
-
-### Adding a new component
-1. Create in `src/components/NameHere.jsx`
-2. Add all styles to `App.css` under a clearly labeled section header
-3. Use CSS custom properties, never hardcode colors
-4. Ensure it works in both dark and light mode
-5. Add responsive rules in the `@media` sections at the bottom of `App.css`
+### Modal rendering
+- `AuthModal` uses `createPortal(jsx, document.body)` to render outside the component tree
+- This avoids stacking context issues caused by `backdrop-filter` on parent elements
+- All modals should follow this pattern
 
 ### Authenticated features
 - Wrap with `useAuth()` — check `user` before rendering auth-only UI
 - Show "Sign In" button for anonymous users (never block content)
-- Highlights: text selection in QA sections → HighlightPopup → save via API
+- Highlights: text selection → HighlightPopup → save via API
 - Notes: drawer panel, scoped per-chapter or per-subject
 
 ## Deployment

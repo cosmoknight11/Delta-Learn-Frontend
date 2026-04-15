@@ -115,6 +115,13 @@ export function createHighlight(data) {
   });
 }
 
+export function updateHighlight(id, data) {
+  return apiFetch(`/highlights/${id}/`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
 export function deleteHighlight(id) {
   return apiFetch(`/highlights/${id}/`, { method: 'DELETE' });
 }
@@ -146,4 +153,31 @@ export function deleteNote(id) {
 
 export function analyzeNote(id) {
   return apiFetch(`/notes/${id}/analyze/`, { method: 'POST' });
+}
+
+// ── DeltaMails ──
+
+export function fetchSubscriptions() {
+  return apiFetch('/deltamails/');
+}
+
+export function subscribeDeltaMails(data) {
+  return apiFetch('/deltamails/subscribe/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateSubscriptionPreferences(id, data) {
+  return apiFetch(`/deltamails/${id}/preferences/`, {
+    method: 'PATCH',
+    body: JSON.stringify(data),
+  });
+}
+
+export function unsubscribeDeltaMails(data) {
+  return apiFetch('/deltamails/unsubscribe/', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
 }

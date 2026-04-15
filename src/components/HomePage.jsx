@@ -8,8 +8,6 @@ import AuthModal from './AuthModal';
 export default function HomePage() {
   const { dark, toggle } = useTheme();
   const { user, logoutUser } = useAuth();
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
@@ -19,14 +17,6 @@ export default function HomePage() {
       .then((data) => { setSubjects(data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
-
-  const handleSubscribe = (e) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail('');
-    }
-  };
 
   return (
     <div className="home-page">
@@ -101,24 +91,15 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="home-subscribe">
-        <h2 className="subscribe-title">Stay Updated</h2>
-        <p className="subscribe-desc">Get notified when new chapters are published. No spam, ever.</p>
-        {subscribed ? (
-          <p className="subscribe-success">Thanks for subscribing!</p>
-        ) : (
-          <form className="subscribe-form" onSubmit={handleSubscribe}>
-            <input
-              type="email"
-              className="subscribe-input"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-            <button type="submit" className="subscribe-btn">Subscribe</button>
-          </form>
-        )}
+      <section className="home-deltamails-promo">
+        <Link to="/subscribe" className="deltamails-card">
+          <div className="deltamails-card-icon">&#9993;</div>
+          <h2 className="deltamails-card-title">DeltaMails</h2>
+          <p className="deltamails-card-desc">
+            Get a daily AI-personalized email with interview Q&A on topics you pick.
+          </p>
+          <span className="deltamails-card-cta">Subscribe &rarr;</span>
+        </Link>
       </section>
 
       <footer className="home-footer">

@@ -5,13 +5,16 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Sidebar from './components/Sidebar';
 import ChapterView from './components/ChapterView';
 import HomePage from './components/HomePage';
+import SubscribePage from './components/SubscribePage';
+import HighlightsPage from './components/HighlightsPage';
 import AuthModal from './components/AuthModal';
 import NotesDrawer from './components/NotesDrawer';
 import { fetchSubjectDetail, fetchChapter, fetchHighlights } from './api/client';
 import './App.css';
 
-function UserButton() {
+function UserButton({ onOpenNotes }) {
   const { user, logoutUser } = useAuth();
+  const nav = useNavigate();
   const [showAuth, setShowAuth] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -38,7 +41,25 @@ function UserButton() {
             <div className="user-menu-name">{user.username}</div>
             <div className="user-menu-email">{user.email}</div>
             <hr className="user-menu-divider" />
+            {onOpenNotes && (
+              <button className="user-menu-item" onClick={() => { onOpenNotes(); setMenuOpen(false); }}>
+                <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="M2 22h4l1-1H3z" fill="currentColor" stroke="none"/>
+                </svg>
+                Notes
+              </button>
+            )}
+            <button className="user-menu-item" onClick={() => { nav('/highlights'); setMenuOpen(false); }}>
+              <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16v16H4z"/><path d="M8 2v4"/><path d="M16 2v4"/><path d="M4 10h16"/><line x1="8" y1="14" x2="12" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/>
+              </svg>
+              My Highlights
+            </button>
+            <hr className="user-menu-divider" />
             <button className="user-menu-item" onClick={() => { logoutUser(); setMenuOpen(false); }}>
+              <svg className="menu-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+              </svg>
               Sign Out
             </button>
           </div>
@@ -181,19 +202,10 @@ function SubjectPage() {
             <button className="topbar-btn" onClick={navNext} disabled={activeId >= chapters.length}>
               Next →
             </button>
-            {user && (
-              <button
-                className="topbar-btn"
-                onClick={() => setNotesOpen(true)}
-                title="Notes"
-              >
-                Notes
-              </button>
-            )}
             <button className="topbar-btn" onClick={toggle} title="Toggle theme">
               {dark ? '☀' : '☽'}
             </button>
-            <UserButton />
+            <UserButton onOpenNotes={() => setNotesOpen(true)} />
           </div>
         </div>
 
@@ -242,6 +254,8 @@ export default function App() {
       <AuthProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
+          <Route path="/subscribe" element={<SubscribePage />} />
+          <Route path="/highlights" element={<HighlightsPage />} />
           <Route path="/:subject/chapter/:id" element={<SubjectPage />} />
           <Route path="/:subject" element={<SubjectRedirect />} />
           <Route path="*" element={<Navigate to="/" replace />} />

@@ -51,6 +51,16 @@ export async function createNewThing(data) {
 - Use `if (!user) return null` to hide auth-only UI elements
 - Show a "Sign In" prompt instead of hiding features completely
 
+## Backend API endpoints consumed by frontend
+
+| Category       | Endpoints                                        |
+|----------------|--------------------------------------------------|
+| Public         | `GET /api/subjects/`, `GET /api/subjects/{slug}/`, `GET /api/subjects/{slug}/chapters/{num}/` |
+| Auth           | `POST /api/auth/register/`, `POST /api/auth/login/`, `POST /api/auth/token/refresh/`, `GET /api/auth/me/` |
+| Highlights     | `GET/POST /api/highlights/`, `DELETE /api/highlights/{id}/` |
+| Notes          | `GET/POST /api/notes/`, `GET/PATCH/DELETE /api/notes/{id}/`, `POST /api/notes/{id}/analyze/` |
+| DeltaMails     | `GET /api/deltamails/`, `POST /api/deltamails/subscribe/`, `PATCH /api/deltamails/{id}/preferences/`, `POST /api/deltamails/unsubscribe/` |
+
 ## Environment variables
 - `VITE_API_URL` — backend base URL (default: `http://localhost:8000/api`)
 - Set in `.env` locally or in Netlify deploy settings for production

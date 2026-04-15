@@ -1,7 +1,47 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import {
+  fetchSubscriptions,
+  subscribeDeltaMails,
+  unsubscribeDeltaMails,
+} from '../api/client';
 
 export default function Sidebar({ chapters, activeId, subject, onClose, className }) {
+  const { user } = useAuth();
+  const [mailActive, setMailActive] = useState(false);
+  const [mailLoading, setMailLoading] = useState(false);
+  const [mailEmail, setMailEmail] = useState('');
+
+  useEffect(() => {
+    if (!user) { setMailActive(false); return; }
+    fetchSubscriptions()
+      .then((subs) => {
+        const match = subs.find((s) => s.subject_slug === subject?.slug);
+        setMailActive(!!match);
+        if (match) setMailEmail(match.email || '');
+      })
+      .catch(() => {});
+  }, [user, subject?.slug]);
+
+  const toggleMail = async () => {
+    if (!user) return;
+    setMailLoading(true);
+    try {
+      if (mailActive) {
+        await unsubscribeDeltaMails({ email: user.email, subject: subject.slug });
+        setMailActive(false);
+      } else {
+        await subscribeDeltaMails({
+          email: user.email,
+          subjects: [subject.slug],
+          difficulty: 'mixed',
+        });
+        setMailActive(true);
+      }
+    } catch { /* silently fail */ }
+    setMailLoading(false);
+  };
   const grouped = useMemo(() => {
     const items = [];
     let lastPart = '';
@@ -26,6 +66,20 @@ export default function Sidebar({ chapters, activeId, subject, onClose, classNam
           <span className="sidebar-brand-name">{subject.name}</span>
         </Link>
       </div>
+
+      {user && (
+        <div className="sidebar-deltamail">
+          <span className="sidebar-deltamail-label">DeltaMails</span>
+          <button
+            className={`sidebar-deltamail-toggle ${mailActive ? 'active' : ''}`}
+            onClick={toggleMail}
+            disabled={mailLoading}
+            title={mailActive ? 'Unsubscribe from DeltaMails' : 'Subscribe to DeltaMails'}
+          >
+            <span className="sidebar-toggle-knob" />
+          </button>
+        </div>
+      )}
 
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {grouped.map(({ ch, showPart }) => (
