@@ -99,7 +99,7 @@ export default function HomePage() {
       </section>
 
       <footer className="home-footer">
-        <p>Built by <a href="https://in.linkedin.com/in/dev-kumar-seth" target="_blank" rel="noopener noreferrer">cosmoknight11 Dev Seth</a></p>
+        <p>Built by <a href="https://in.linkedin.com/in/dev-kumar-seth" target="_blank" rel="noopener noreferrer">Dev Seth</a></p>
       </footer>
     </div>
   );
